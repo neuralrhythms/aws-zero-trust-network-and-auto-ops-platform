@@ -1,0 +1,63 @@
+# ──────────────────────────────────────────────
+# Terraform
+# ──────────────────────────────────────────────
+
+# Local .terraform directories (provider binaries, downloaded modules)
+**/.terraform/
+
+# Terraform lock files — omit to avoid committing platform-specific binaries hashes
+# (re-generated on each developer's machine via terraform init)
+**/.terraform.lock.hcl
+
+# State files — never commit state; use remote backend (S3 + DynamoDB)
+*.tfstate
+*.tfstate.backup
+
+# Terraform plan output files
+*.tfplan
+
+# Override files (local developer overrides — not for source control)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Crash log from Terraform
+crash.log
+crash.*.log
+
+# ──────────────────────────────────────────────
+# Secrets & credentials
+# ──────────────────────────────────────────────
+
+# Environment variable files
+.env
+.env.*
+
+# AWS credentials files if accidentally placed in project
+.aws/
+
+# ──────────────────────────────────────────────
+# Kiro IDE
+# ──────────────────────────────────────────────
+
+# Kiro specs, tasks, steering, and session files
+.kiro/
+
+# ──────────────────────────────────────────────
+# macOS
+# ──────────────────────────────────────────────
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ──────────────────────────────────────────────
+# Editors
+# ──────────────────────────────────────────────
+
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

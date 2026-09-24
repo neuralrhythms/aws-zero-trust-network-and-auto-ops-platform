@@ -1,0 +1,91 @@
+# =============================================================================
+# .pre-commit-config.yaml
+#
+# Pre-commit hooks for the AWS Zero-Trust Network & Auto-Ops Platform.
+# Runs automatically on every `git commit`. To run manually against all files:
+#
+#   pre-commit run --all-files
+#
+# To install the hooks into the local git repo:
+#
+#   pre-commit install
+#
+# Requirements: pre-commit (pip install pre-commit), terraform >= 1.5.0
+#               checkov (pip install checkov)
+# Optional:     terraform-docs (brew install terraform-docs) — enables
+#               the terraform_docs hook below; remove the hook if not installed.
+# =============================================================================
+
+repos:
+
+  # ── General file hygiene ────────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-merge-conflict        # Block commits with unresolved merge markers
+      - id: end-of-file-fixer           # Ensure files end with a newline
+      - id: trailing-whitespace         # Strip trailing whitespace
+      - id: check-yaml                  # Validate YAML syntax
+      - id: check-json                  # Validate JSON syntax
+      - id: detect-private-key          # Block PEM private keys from being committed
+
+  # ── Secret detection ────────────────────────────────────────────────────────
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        name: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+        exclude: |
+          (?x)^(
+            .*\.terraform/.*|
+            .*terraform\.tfstate.*|
+            .*\.tfstate\.backup$
+          )$
+
+  # ── Terraform formatting + validation ──────────────────────────────────────
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.96.1
+    hooks:
+      - id: terraform_fmt              # Auto-format all .tf files (terraform fmt)
+        args:
+          - --args=-recursive
+
+      - id: terraform_validate         # Run terraform validate on all environments
+        args:
+          - --args=-no-color
+        # -backend=false skips S3 backend — placeholder bucket names are never contacted
+        pass_filenames: false
+
+      - id: terraform_docs             # Keep README tables in module dirs up to date
+        # Requires: brew install terraform-docs
+        args:
+          - --args=--output-file=README.md
+          - --args=--output-mode=inject
+
+  # ── IaC security scanning (Checkov) ────────────────────────────────────────
+  - repo: https://github.com/bridgecrewio/checkov
+    rev: "3.2.231"
+    hooks:
+      - id: checkov
+        name: checkov-terraform
+        args:
+          - --directory=.
+          - --framework=terraform
+          - --quiet
+          - --compact
+          # Intentional skips — not applicable to this project:
+          #
+          # CKV_TF_1    — Community module version constraints (~> x.y) are the accepted
+          #               practice for registry modules. Commit-hash pinning applies to
+          #               private/internal modules only.
+          #
+          # CKV2_AWS_62 — S3 event notifications are an operational feature, not a
+          #               security control. Log integrity is enforced by Object Lock (WORM).
+          #
+          # CKV_AWS_144 — S3 cross-region replication. Single-region by design.
+          #
+          # CKV_AWS_145 — Log archive uses SSE-KMS (aws:kms); CMK-only enforcement is
+          #               an organisational policy decision outside this engagement scope.
+          - --skip-check=CKV_TF_1,CKV2_AWS_62,CKV_AWS_144,CKV_AWS_145
+        pass_filenames: false

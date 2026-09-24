@@ -1,0 +1,45 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyOpenSSH",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:AuthorizeSecurityGroupIngress"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "ec2:IpProtocol": "tcp",
+          "ec2:FromPort": "22",
+          "ec2:ToPort": "22"
+        },
+        "IpAddress": {
+          "ec2:cidr": [
+            "0.0.0.0/0"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenyOpenRDP",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:AuthorizeSecurityGroupIngress"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "ec2:IpProtocol": "tcp",
+          "ec2:FromPort": "3389",
+          "ec2:ToPort": "3389"
+        },
+        "IpAddress": {
+          "ec2:cidr": [
+            "0.0.0.0/0"
+          ]
+        }
+      }
+    }
+  ]
+}

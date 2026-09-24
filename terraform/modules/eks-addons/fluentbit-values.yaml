@@ -1,0 +1,29 @@
+# Fluent Bit Helm values — Splunk HEC output; deployed via terraform/modules/eks-addons/main.tf
+
+# Toleration strategy:
+#   - First entry: tolerates the "os=windows:NoSchedule" taint placed on Windows managed node groups,
+#     ensuring the Fluent Bit DaemonSet pod is scheduled onto Windows nodes for container log collection.
+#   - Second entry: uses the "Exists" operator with no key, which tolerates any taint —
+#     in practice this catches Linux nodes that have no OS taint, ensuring full DaemonSet coverage
+#     across the heterogeneous (Linux + Windows) cluster.
+
+tolerations:
+  - key: "os"
+    operator: "Equal"
+    value: "windows"
+    effect: "NoSchedule"
+  - operator: "Exists"  # Linux nodes (no taint) — matches all remaining nodes
+
+# Fluent Bit OUTPUT plugin: ships container logs from all namespaces to Splunk Cloud via HEC.
+# splunk_hec_host and splunk_hec_token are injected at Helm install time from Terraform variables.
+# splunk_hec_token is marked sensitive = true in variables.tf and is never hardcoded here.
+
+outputs: |
+  [OUTPUT]
+      Name        splunk
+      Match       *
+      Host        ${splunk_hec_host}
+      Port        443
+      Splunk_Token ${splunk_hec_token}
+      TLS         On
+      TLS.Verify  On

@@ -1,0 +1,29 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyDirectInternetGatewayCreation",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:CreateInternetGateway"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyRouteToInternetGateway",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:CreateRoute",
+        "ec2:ReplaceRoute"
+      ],
+      "Resource": "arn:aws:ec2:*:*:route-table/*",
+      "Condition": {
+        "StringLike": {
+          "ec2:GatewayId": [
+            "igw-*"
+          ]
+        }
+      }
+    }
+  ]
+}
